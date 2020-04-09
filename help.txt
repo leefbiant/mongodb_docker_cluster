@@ -1,0 +1,46 @@
+
+docker exec -it rs_config_server /bin/bash
+mongo --host localhost --port 27019
+
+rs.initiate({
+    _id: "rs_config_server",
+    configsvr: true,
+    members: [
+        { _id : 0, host : "leefyun.tpddns.cn:27019" },
+        { _id : 1, host : "193.112.160.248:27019" }
+    ]
+});
+
+
+docker exec -it mongos /bin/bash
+mongo --port 27017
+
+sh.addShard("leefyun.tpddns.cn:27018")
+sh.addShard("193.112.160.248:27018")
+sh.addShard("leefyun.tpddns.cn:27028")
+sh.addShard("193.112.160.248:27028")
+
+
+sh.addShard("94.191.22.224:27028")
+sh.addShard("94.191.22.224:27018")
+
+
+# 指定需要分片的数据库
+sh.enableSharding("db_sharding")  
+
+# 指定需要分片的集合
+sh.shardCollection("db_sharding.users",{"age": 'hashed'})
+
+# 删除集合
+db.table1.drop();
+
+for (i = 1; i <= 1000; i += 3) db.users.insert({age:(i%100), name:"user"+i, create_at:new Date()})
+
+> db.serverStatus()    #详细的Mongo服务器信息
+> db.currentOp()       #显示当前的用户操作
+> db.stats()           #当前数据库的信息
+> db.collection.stats()   #mongo数据库的集合详细信息
+> db.printShardingStatus()   #分片状态，或者用  sh.status()
+
+
+db.runCommand( { removeshard:"user" } )
