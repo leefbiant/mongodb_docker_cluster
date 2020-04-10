@@ -9,12 +9,10 @@ services:
     ports:
       - 27018:27018
     volumes:
-      - /home/core/shard_server01/data/db:/data/db
-      - /home/core/shard_server01/data/configdb:/data/configdb
-      - /home/core/shard_server01/data/backup:/data/backup
-      - /home/core/shard_server01/mongod.conf:/etc/mongod.conf
-      - /home/core/mongo-files/mongodb-keyfile:/etc/key.file
-    command: --shardsvr  --bind_ip_all 
+      - /home/core/shard_server01/data/db:/data
+      - /home/core/shard_server01/etc:/etc
+      - /home/core/mongo-files/key.file:/etc/key.file
+    command: --shardsvr --keyFile "/etc/key.file" --bind_ip_all --auth
     restart: always
     depends_on:
       - rs_config_server
@@ -32,12 +30,10 @@ services:
     ports:
       - 27028:27018
     volumes:
-      - /home/core/shard_server02/data/db:/data/db
-      - /home/core/shard_server02/data/configdb:/data/configdb
-      - /home/core/shard_server02/data/backup:/data/backup
-      - /home/core/shard_server02/mongod.conf:/etc/mongod.conf
-      - /home/core/mongo-files/mongodb-keyfile:/etc/key.file
-    command: --shardsvr  --bind_ip_all 
+      - /home/core/shard_server02/data:/data
+      - /home/core/shard_server02/etc:/etc
+      - /home/core/mongo-files/key.file:/etc/key.file
+    command: --shardsvr --keyFile "/etc/key.file" --bind_ip_all --auth
     restart: always
     depends_on:
       - rs_config_server
@@ -56,12 +52,10 @@ services:
     ports:
       - 27019:27019
     volumes:
-      - /home/core/rs_config_server/data/db:/data/db
-      - /home/core/rs_config_server/data/configdb:/data/configdb
-      - /home/core/rs_config_server/data/backup:/data/backup
-      - /home/core/rs_config_server/mongod.conf:/etc/mongod.conf
-      - /home/core/mongo-files/mongodb-keyfile:/etc/key.file
-    command: --configsvr  --replSet "rs_config_server" --bind_ip_all 
+      - /home/core/rs_config_server/data:/data
+      - /home/core/rs_config_server/etc:/etc
+      - /home/core/mongo-files/key.file:/etc/key.file
+    command: --configsvr --keyFile "/etc/key.file" --replSet "rs_config_server" --bind_ip_all --auth
     restart: always
  
  
@@ -75,11 +69,9 @@ services:
     ports:
       - 27017:27017
     volumes:
-      - /home/core/mongos/data/db:/data/db
-      - /home/core/mongos/data/configdb:/data/configdb
-      - /home/core/mongos/data/backup:/data/backup
-      - /home/core/mongos/mongod.conf:/etc/mongod.conf
-      - /home/core/mongo-files/mongodb-keyfile:/etc/key.file
+      - /home/core/mongos/data:/data
+      - /home/core/mongos/etc:/etc
+      - /home/core/mongo-files/key.file:/etc/key.file
     entrypoint: mongos
     command: --configdb rs_config_server/leefyun.tpddns.cn:27019,193.112.160.248:27019 --bind_ip_all
     depends_on:
