@@ -1,0 +1,5 @@
+#   登录认证
+db.auth("siteRootAdmin", "password");
+
+#   解决从库不可读问题· 
+db.getMongo().setSlaveOk();
