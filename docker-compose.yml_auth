@@ -1,0 +1,95 @@
+version: '2'
+services:
+  shard_server01:
+    container_name: shard_server01
+    image: mongo
+    networks:
+      mongo:
+        ipv4_address: 192.168.1.11
+    ports:
+      - 27018:27018
+    volumes:
+      - /home/core/shard_server01/data/db:/data/db
+      - /home/core/shard_server01/data/configdb:/data/configdb
+      - /home/core/shard_server01/data/backup:/data/backup
+      - /home/core/shard_server01/mongod.conf:/etc/mongod.conf
+      - /home/core/mongo-files/key.file:/etc/key.file
+    command: --shardsvr --keyFile "/etc/key.file" --bind_ip_all --auth
+    restart: always
+    depends_on:
+      - rs_config_server
+    ulimits:
+      nofile:
+        soft: 300000
+        hard: 300000
+
+  shard_server02:
+    container_name: shard_server02
+    image: mongo
+    networks:
+      mongo:
+        ipv4_address: 192.168.1.12
+    ports:
+      - 27028:27018
+    volumes:
+      - /home/core/shard_server02/data/db:/data/db
+      - /home/core/shard_server02/data/configdb:/data/configdb
+      - /home/core/shard_server02/data/backup:/data/backup
+      - /home/core/shard_server02/mongod.conf:/etc/mongod.conf
+      - /home/core/mongo-files/key.file:/etc/key.file
+    command: --shardsvr --keyFile "/etc/key.file" --bind_ip_all --auth
+    restart: always
+    depends_on:
+      - rs_config_server
+    ulimits:
+      nofile:
+        soft: 300000
+        hard: 300000 
+
+# 配置服务器集群两个节点（mongodb3.4之后的版本需要两个config_server）
+  rs_config_server:
+    container_name: rs_config_server
+    image: mongo
+    networks:
+      mongo:
+        ipv4_address: 192.168.1.13
+    ports:
+      - 27019:27019
+    volumes:
+      - /home/core/rs_config_server/data/db:/data/db
+      - /home/core/rs_config_server/data/configdb:/data/configdb
+      - /home/core/rs_config_server/data/backup:/data/backup
+      - /home/core/rs_config_server/mongod.conf:/etc/mongod.conf
+      - /home/core/mongo-files/key.file:/etc/key.file
+    command: --configsvr --keyFile "/etc/key.file" --replSet "rs_config_server" --bind_ip_all --auth
+    restart: always
+ 
+ 
+# 路由节点mongos
+  mongos:
+    container_name: mongos
+    networks:
+      mongo:
+        ipv4_address: 192.168.1.15
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - /home/core/mongos/data/db:/data/db
+      - /home/core/mongos/data/configdb:/data/configdb
+      - /home/core/mongos/data/backup:/data/backup
+      - /home/core/mongos/mongod.conf:/etc/mongod.conf
+      - /home/core/mongo-files/key.file:/etc/key.file
+    entrypoint: mongos
+    command: --configdb rs_config_server/leefyun.tpddns.cn:27019,193.112.160.248:27019 --keyFile "/etc/key.file" --bind_ip_all
+    depends_on:
+      - shard_server01
+      - shard_server02
+ 
+networks:
+    mongo:
+        driver: bridge
+        ipam:
+            config:
+                - subnet: 192.168.1.10/24
+
